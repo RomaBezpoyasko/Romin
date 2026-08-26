@@ -34,7 +34,15 @@ Shorter scripts
 
 Easy to embed
 
+## Usage
 
+```csharp
+var code = "print("Hello, World!")";
+
+var host = new Romin.VMHost();
+var p = host.GetParser(code);
+host.Run(p.Parse());
+```
 ## Features
 
 ### Hello World
