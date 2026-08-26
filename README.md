@@ -34,7 +34,7 @@ Shorter scripts
 
 Easy to embed
 
-## Usage
+## Usage in .Net application
 
 ```csharp
 var code = """print("Hello, World!")""";
