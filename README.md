@@ -384,7 +384,7 @@ Romin is built around three ideas.
 .NET objects are used naturally:
 
 ```romin
-use System.IO
+use 'System.IO'
 file = new FileInfo("test.txt")
 ```
 
