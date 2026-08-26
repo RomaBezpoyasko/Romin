@@ -14,7 +14,7 @@ if user.IsActive
 Create and use .NET objects directly:
 
 ```romin
-file = new System.IO.File()
+client = new System.Net.WebClient()
 ```
 
 The goal is simple: write scripts that feel natural to a C# developer, but are much shorter and easier to write.
@@ -38,7 +38,7 @@ price = 19.95
 active = true
 
 // decimal value
-price = 12.345M
+price = 12.34m
 ```
 
 Variables are created by assignment. No unnecessary declarations are required.
@@ -152,9 +152,12 @@ A table can contain a sequence of values.
 Access values by index:
 
 ```romin
-print(tab[0])
+
+//Index start from 1 like in Lua
+
 print(tab[1])
 print(tab[2])
+print(tab[3])
 ```
 
 ### Named Table
@@ -221,26 +224,12 @@ name = user.name ?? "Unknown"
 
 If `user.name` is null, `"Unknown"` is used instead.
 
-## Safe Navigation
-
-```romin
-city = user?.address?.city
-```
-
-Safe navigation allows nested objects to be accessed without immediately failing when an intermediate value is null.
-
-It can be combined with `??`:
-
-```romin
-city = user?.address?.city ?? "Unknown"
-```
-
 ## .NET Objects
 
 One of Romin's main features is the ability to work with .NET objects directly.
 
 ```romin
-file = new System.IO.File()
+client = new System.Net.WebClient()
 ```
 
 The script can create and use objects from the .NET environment exposed by the host application.
@@ -265,12 +254,6 @@ A C# application can expose its own objects to Romin.
 For example, the host application may provide:
 
 ```romin
-database.Query("SELECT * FROM Users")
-```
-
-or:
-
-```romin
 printer.Print("Hello")
 ```
 
@@ -281,10 +264,25 @@ The script can therefore control functionality implemented in C#.
 Code can be organized into modules.
 
 ```romin
-module Math
-
-function square(x)
+//parent.rn
+fn square(x)
   return x * x
+```
+Inheritance
+
+```romin
+//child.rn
+base 'parent.rn'
+
+print(square(12))
+```
+Or loaded like a module
+
+```romin
+//child2.rn
+p = load('parent.rn')
+
+print(p.square(12))
 ```
 
 Modules help organize larger scripts and applications.
@@ -340,63 +338,8 @@ Logical operators can combine multiple conditions:
 and
 or
 not
-```
+`
 
-## Combining Features
-
-Romin becomes especially useful when several simple features are combined:
-
-```romin
-use System.IO
-
-fn getSize(file)
-  if file.Exists
-    return file.Length
-  return 0
-
-files = [
-  new FileInfo("one.txt"),
-  new FileInfo("two.txt")
-]
-
-for file in files
-  print(getSize(file))
-```
-
-This example combines:
-
-- .NET modules
-- .NET objects
-- `new`
-- functions
-- conditions
-- tables
-- loops
-- properties
-- method/object access
-
-## A More Realistic Example
-
-```romin
-use System.IO
-
-fn processFile(path)
-  file = new FileInfo(path)
-
-  if !file.Exists
-    print("File not found")
-    return
-
-  print("File: " + file.Name)
-  print("Size: " + file.Length)
-
-files = ["one.txt", "two.txt", "three.txt"]
-
-for path in files
-  processFile(path)
-```
-
-The script uses .NET classes while keeping the syntax compact and readable.
 
 ## Why Romin?
 
@@ -467,64 +410,69 @@ This makes Romin suitable for:
 - automation scripts
 - application extensions
 
-### Example: Application Scripting
+## Romin usefull example
 
-A C# application could expose:
+```Romin
+use 'System.Net'
+use 'System.IO.Compression.ZipFile'
 
-```text
-printer
-database
-logger
-configuration
+host = 'host'
+login = 'login'
+pass = 'pass'
+
+fn get_ftp()
+    client = new System.Net.WebClient()
+    cred   = new System.Net.NetworkCredential(login, pass)
+    client.Credentials = cred
+    return client
+
+fn upload_file(dst, src, ftp) 
+    ftp = ftp ?? get_ftp()
+    ftp.UploadFile(dst, src)
+
+fn get_files(src, filter, all)
+    return Directory.GetFiles(src, filter, all ? 
+           SearchOption.AllDirectories: SearchOption.TopDirectoryOnly)
+
+fn get_files_list(src, filter)
+   d     = new DirectoryInfo(src)
+   files = d.GetFiles()
+   tab   = []
+   for file in files
+        if filter[file.Extension] != null
+            tab[file.Name] = file.FullName        
+   return tab
+
+fn copy_files(src, dst, filter, all)
+    files = get_files(src, filter, all)
+    for file in files                    
+        target = file.Replace(src, dst)
+        dir    = Path.GetDirectoryName(target)             
+        if !Directory.Exists(dir)
+           Directory.CreateDirectory(dir) 
+        File.Copy(file, target, true)
+
+fn copy_all_files(src, dst, list_filter, all)
+    for filter in list_filter
+        copy_files(src, dst, filter, all)  
+
+fn mkdir(name)
+    return Directory.CreateDirectory(name)
+
+fn copy_dir(src, dst)
+   dirs =  Directory.GetDirectories(src, '*', 
+                SearchOption.AllDirectories)    
+   for dir in dirs
+       mkdir(dir.Replace(src, dst))  
+
+fn zip_file(dir, name) 
+    return ZipFile.CreateFromDirectory(dir, name)
+fn unzip_file(from, to)
+    return ZipFile.ExtractToDirectory(from, to, true)
+
+fn delete_file(name)
+    return File.Delete(name)
+fn delete_dir(name)
+    return Directory.Delete(name, true)
+
 ```
-
-A Romin script could then use them:
-
-```romin
-if configuration.PrintEnabled
-  printer.Print("Hello")
-logger.Info("Printing completed")
-```
-
-The application remains written in C#, while customizable logic can be written in Romin.
-
-## In One Example
-
-A small but realistic Romin script can look like this:
-
-```romin
-use System.IO
-
-users = [
-  [Name:"John", Age:25],
-  [Name:"Mary", Age:17]
-]
-
-fn showUser(user)
-  if user?.Age >= 18
-    print("Adult: " + user.Name)
-  else
-    print("Under 18: " + user.Name)
-
-for user in users
-  showUser(user)
-```
-
-This demonstrates the main philosophy of Romin:
-
-> simple syntax + .NET objects + Python-style blocks + Lua-style tables.
-
-## Romin in One Sentence
-
-Romin is a simple embedded scripting language for .NET that combines C#-style object usage, Python-style indentation and Lua-style tables.
-
-```romin
-use System.IO
-
-file = new FileInfo("test.txt")
-
-if file?.Exists
-  print(file.Name)
-```
-
-Simple to write. Familiar to C# developers. Designed for .NET applications.
