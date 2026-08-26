@@ -19,6 +19,22 @@ client = new System.Net.WebClient()
 
 The goal is simple: write scripts that feel natural to a C# developer, but are much shorter and easier to write.
 
+## Why Romin?
+Familiar to C# developers
+
+Runs inside .NET applications
+
+Direct access to .NET objects
+
+Python-like indentation
+
+Lua-like tables
+
+Shorter scripts
+
+Easy to embed
+
+
 ## Features
 
 ### Hello World
@@ -34,11 +50,10 @@ Prints text to the console or to the function provided by the host application.
 ```romin
 name = "John"
 age = 30
-price = 19.95
+weight = 19.95 // double value
+price = 12.34m // decimal value
 active = true
 
-// decimal value
-price = 12.34m
 ```
 
 Variables are created by assignment. No unnecessary declarations are required.
@@ -276,7 +291,7 @@ base 'parent.rn'
 
 print(square(12))
 ```
-Or loaded like a module
+or loaded like a module
 
 ```romin
 //child2.rn
@@ -337,12 +352,15 @@ Logical operators can combine multiple conditions:
 ```text
 and
 or
-not
-`
+```
 
+## Interpolated string
 
-## Why Romin?
-
+```romin
+name = "Mario"
+text = $"Hello {name}"
+print(text)
+```
 Romin is built around three ideas.
 
 ### Familiar to C# developers
