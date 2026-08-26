@@ -34,7 +34,15 @@ Shorter scripts
 
 Easy to embed
 
+## Usage in .Net application
 
+```csharp
+var code = """print("Hello, World!")""";
+
+var host = new Romin.VMHost();
+var p = host.GetParser(code);
+host.Run(p.Parse());
+```
 ## Features
 
 ### Hello World
@@ -376,7 +384,7 @@ Romin is built around three ideas.
 .NET objects are used naturally:
 
 ```romin
-use System.IO
+use 'System.IO'
 file = new FileInfo("test.txt")
 ```
 
