@@ -814,6 +814,9 @@ namespace Romin
                 case ValueKind.Double:
                     return Convert.ChangeType(val.F, type);
 
+                case ValueKind.Decimal:
+                    return Convert.ChangeType(val.M, type);
+
                 // Romin boolean.
                 case ValueKind.Bool:
                     return Convert.ChangeType(val.I != 0, type);
