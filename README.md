@@ -122,20 +122,6 @@ print(getMessage(25))
 
 Functions can contain any normal Romin statements.
 
-### Functions as Values
-
-Functions can be treated as runtime values.
-
-```romin
-function hello()
-  print("Hello")
-
-action = hello
-action()
-```
-
-This allows functions to be passed around and used dynamically.
-
 ## Tables
 
 Tables are one of the core data structures in Romin.
