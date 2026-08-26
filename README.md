@@ -120,6 +120,19 @@ fn getMessage(age)
 print(getMessage(25))
 ```
 
+### Functions as Values
+
+Functions can be treated as runtime values.
+
+```romin
+fn hello()
+  print("Hello")
+
+action = hello
+action()
+```
+
+This allows functions to be passed around and used dynamically.
 Functions can contain any normal Romin statements.
 
 ## Tables
