@@ -444,7 +444,7 @@ This makes Romin suitable for:
 - automation scripts
 - application extensions
 
-## Romin usefull example
+## Romin usage example
 
 ```Romin
 use 'System.Net'
