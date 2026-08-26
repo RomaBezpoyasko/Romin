@@ -239,6 +239,14 @@ name = user.name ?? "Unknown"
 
 If `user.name` is null, `"Unknown"` is used instead.
 
+## Ternary Operator
+
+The `?:` operator provides a short form of `if/else` for expressions.
+
+```romin
+message = age >= 18 ? "Adult" : "Under 18"
+```
+
 ## .NET Objects
 
 One of Romin's main features is the ability to work with .NET objects directly.
