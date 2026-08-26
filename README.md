@@ -37,7 +37,7 @@ Easy to embed
 ## Usage
 
 ```csharp
-var code = "print("Hello, World!")";
+var code = """print("Hello, World!")""";
 
 var host = new Romin.VMHost();
 var p = host.GetParser(code);
