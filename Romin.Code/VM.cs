@@ -46,7 +46,7 @@ namespace Romin
         /// Executes a module starting from instruction 0.
         /// </summary>
         /// <param name="module"></param>
-        public void Run(Module module)
+        public async Task Run(Module module)
         {
             frames.Clear();
             frames.Push(new CallFrame
@@ -68,7 +68,7 @@ namespace Romin
                 try
                 {
                     var ins = frame.Module.Code[frame.Ip++];
-                    Execute(ins, frame);
+                    await Execute(ins, frame);
                 }
                 catch (Exception ex)
                 {
@@ -83,7 +83,7 @@ namespace Romin
         /// <param name="ins"></param>
         /// <param name="frame"></param>
         /// <exception cref="Exception"></exception>
-        private void Execute(Instruction ins, CallFrame frame)
+        private async Task Execute(Instruction ins, CallFrame frame)
         {
             OnInstruction?.Invoke(new VMState
             {
@@ -356,7 +356,7 @@ namespace Romin
 
                         var func = st.Pop();
 
-                        var r = RunFunction(func, args);
+                        var r = await RunFunction(func, args);
                         st.Push(r);
 
                         break;
@@ -370,7 +370,8 @@ namespace Romin
                             args[i] = st.Pop();
 
                         var builtinName = st.Pop().S;
-                        st.Push(RunBuiltinFunction(builtinName, args));
+                        var v = await RunBuiltinFunction(builtinName, args);
+                        st.Push(v);
                         break;
                     }
                 case OpCode.Return:
@@ -553,7 +554,7 @@ namespace Romin
         /// <param name="fn"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        private Value RunScriptFunction(
+        private async Task<Value> RunScriptFunction(
                 ScriptFunction fn,
                 Value[] args)
         {
@@ -576,7 +577,7 @@ namespace Romin
             while (frames.Count > 0 && frames.Peek() == frame)
             {
                 var ins = frame.Module.Code[frame.Ip++];
-                Execute(ins, frame);
+                await Execute(ins, frame);
 
                 if (frame.Ip == int.MaxValue)
                     break;
@@ -595,7 +596,7 @@ namespace Romin
         /// <param name="args"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private Value RunBuiltinFunction(string name, Value[] args)
+        private async Task<Value> RunBuiltinFunction(string name, Value[] args)
         {
             switch (name)
             {
@@ -604,7 +605,7 @@ namespace Romin
                     return Value.Null;
                 case "load":
                     {
-                        var module = Host.LoadModule(
+                        var module = await Host.LoadModule(
                             args[0].S,
                             args.Length > 1
                                 ? args[1].T
@@ -626,14 +627,14 @@ namespace Romin
         /// <param name="args"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private Value RunFunction(Value func, Value[] args)
+        private async Task<Value> RunFunction(Value func, Value[] args)
         {
             // =========================
             // Script function
             // =========================
             if (func.O is ScriptFunction sf)
             {
-                return RunScriptFunction(sf, args);
+                return await RunScriptFunction(sf, args);
             }
 
             // =========================
@@ -712,13 +713,13 @@ namespace Romin
             public int Ip;
 
             // Module being executed
-            public Module Module;
+            public required Module Module;
 
             // Operand stack
             public Stack<Value> Stack = new();
 
             // Local execution environment
-            public Env Env;
+            public required Env Env;
 
             // Function return value
             public Value ReturnValue = Value.Null;
@@ -731,7 +732,7 @@ namespace Romin
         private class TryFrame
         {
             public int CatchIp;
-            public CallFrame Frame;
+            public required CallFrame Frame;
         }
         private class ScriptEnumerator
         {
@@ -746,6 +747,7 @@ namespace Romin
                 VarCount = varCount;
             }
         }
+
         #endregion
     }
 }

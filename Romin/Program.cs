@@ -30,7 +30,7 @@ if (args.Length > 0)
 
     // Parse the script using the existing module
     // and execute the resulting bytecode.
-    host.Run(p.Parse(module));
+    await host.Run(p.Parse(module));
 }
 else
 {
@@ -46,11 +46,11 @@ else
             // This provides a default entry point for a Romin application.
             if (File.Exists(file))
             {
-                var m = host.Compile(file);
+                var m = await host.Compile(file);
 
                 // Create a virtual machine and run the compiled module.
                 var vm = new VM(host);
-                vm.Run(m);
+                await vm.Run(m);
 
                 // Wait before starting the next execution cycle.
                 Console.ReadLine();
@@ -61,7 +61,7 @@ else
                 // Read one line from the console, parse it and execute it.
                 module.Code.Clear();
                 var p = host.GetParser(Console.ReadLine());
-                host.Run(p.Parse(module));
+                await host.Run(p.Parse(module));
             }
         }
         catch (Exception e)

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Net.Http;
+using System.IO;
 
 using static System.Net.Mime.MediaTypeNames;
 
@@ -37,14 +39,14 @@ namespace Romin
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public Module LoadModule(string path)
+        public async Task<Module> LoadModule(string path)
         {
             // Return the already loaded module if it exists.
             if (Modules.TryGetValue(path, out var m))
                 return m;
 
             // Compile the module source into bytecode.
-            var module = Compile(path);
+            var module = await Compile(path);
 
             // Execute the compiled module.
             Run(module);
@@ -62,7 +64,7 @@ namespace Romin
         /// <param name="parameters"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public Module LoadModule(string path, Table parameters)
+        public async Task<Module> LoadModule(string path, Table parameters)
         {
             if (Modules.TryGetValue(path, out var m))
                 return m;
@@ -75,7 +77,7 @@ namespace Romin
 
                 module.Set(entry.Key.S, entry.Value);
             }
-            var code = File.ReadAllText(path);
+            var code = await GetCode(path);
             var parser = GetParser(code, path);
 
             parser.Parse(module);
@@ -86,13 +88,49 @@ namespace Romin
             return module;
         }
 
+        private static readonly HttpClient HttpClient = new HttpClient();
+
         /// <summary>
         /// Compile module only to bytecode and return as module
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public Module Compile(string path)
-            => CompileSource(File.ReadAllText(path), path);
+        public async Task<Module> Compile(string path)
+        {
+            var code = await GetCode(path);
+            return CompileSource(code, path);
+        }
+
+        /// <summary>
+        /// Return code from file in folder or from web
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private async Task<string> GetCode(string path)
+        {
+            string code;
+            if (IsUrl(path))
+            {
+                code = await HttpClient.GetStringAsync(path);
+            }
+            else
+            {
+                code = await File.ReadAllTextAsync(path);
+            }
+            return code;
+        }
+
+        /// <summary>
+        /// True if string is URL
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private bool IsUrl(string value)
+        {
+            return Uri.TryCreate(value, UriKind.Absolute, out var uri)
+                   && (uri.Scheme == Uri.UriSchemeHttp
+                       || uri.Scheme == Uri.UriSchemeHttps);
+        }
 
         /// <summary>
         /// Do script 
@@ -132,13 +170,13 @@ namespace Romin
         /// Run script in module
         /// </summary>
         /// <param name="module"></param>
-        public void Run(Module module)
+        public async Task Run(Module module)
         {
             // Create a VM associated with this host.
             var vm = new VM(this);
 
             // Execute the module's bytecode.
-            vm.Run(module);
+            await vm.Run(module);
         }
 
         /// <summary>
